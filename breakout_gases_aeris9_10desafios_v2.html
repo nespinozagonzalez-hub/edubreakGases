@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AERIS-9 — Breakout de Leyes de los Gases</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07111a;
+  --bg2:#0d1b27;
+  --panel:#122638;
+  --panel2:#0e2030;
+  --line:#25445d;
+  --cyan:#74f7ff;
+  --cyan-soft:rgba(116,247,255,.16);
+  --amber:#ffc857;
+  --rose:#ff6b8b;
+  --green:#72ffa0;
+  --white:#eaf7ff;
+  --muted:#8fb0c7;
+  --shadow:0 0 30px rgba(116,247,255,.15);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(circle at 20% 20%, rgba(116,247,255,.08), transparent 35%),
+    radial-gradient(circle at 80% 15%, rgba(255,200,87,.06), transparent 30%),
+    radial-gradient(circle at 70% 80%, rgba(255,107,139,.07), transparent 30%),
+    linear-gradient(180deg,#050b11,#08131d 45%,#050b11 100%);
+  color:var(--white);
+  font-family:'Rajdhani',sans-serif;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(rgba(116,247,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(116,247,255,.03) 1px, transparent 1px);
+  background-size:42px 42px;
+  opacity:.35;
+}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex}
+button,input{font:inherit}
+.hidden{display:none!important}
+
+/* Intro */
+#intro{
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+.stars,.clouds,.rings{position:absolute;inset:0;pointer-events:none}
+.stars{
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,.9) 1px, transparent 1px),
+    radial-gradient(circle, rgba(116,247,255,.7) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,200,87,.75) 1px, transparent 1px);
+  background-size:120px 120px, 180px 180px, 240px 240px;
+  background-position:0 0, 40px 80px, 90px 30px;
+  opacity:.45;
+}
+.clouds{
+  background:
+    radial-gradient(circle at 20% 60%, rgba(116,247,255,.10), transparent 25%),
+    radial-gradient(circle at 75% 40%, rgba(116,247,255,.08), transparent 22%),
+    radial-gradient(circle at 50% 85%, rgba(255,200,87,.05), transparent 20%);
+  filter:blur(18px);
+}
+.rings::before,.rings::after{
+  content:"";
+  position:absolute;
+  border:1px solid rgba(116,247,255,.15);
+  border-radius:999px;
+  left:50%;top:50%;transform:translate(-50%,-50%);
+}
+.rings::before{width:62vw;height:62vw;max-width:760px;max-height:760px}
+.rings::after{width:42vw;height:42vw;max-width:500px;max-height:500px}
+.intro-card{
+  position:relative;
+  z-index:2;
+  width:min(980px,92vw);
+  background:linear-gradient(180deg, rgba(12,24,36,.92), rgba(7,16,24,.95));
+  border:1px solid var(--line);
+  border-radius:28px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.intro-top{
+  padding:38px 38px 22px;
+  border-bottom:1px solid rgba(116,247,255,.12);
+}
+.micro{
+  font-family:'Share Tech Mono',monospace;
+  font-size:12px;
+  letter-spacing:3px;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+.hero-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(34px,6vw,70px);
+  line-height:.92;
+  margin:12px 0 16px;
+  text-transform:uppercase;
+}
+.hero-title span:first-child{display:block;color:var(--cyan);text-shadow:0 0 20px rgba(116,247,255,.45)}
+.hero-title span:last-child{display:block;color:#fff}
+.hero-desc{
+  max-width:760px;
+  font-size:18px;
+  line-height:1.6;
+  color:#cde7f6;
+}
+.hero-desc strong{color:var(--amber)}
+.intro-grid{
+  display:grid;
+  grid-template-columns:1.2fr .9fr;
+  gap:24px;
+  padding:28px 38px 36px;
+}
+.panel{
+  background:linear-gradient(180deg, rgba(18,38,56,.82), rgba(10,23,35,.92));
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:22px;
+}
+.panel h3{
+  font-family:'Orbitron',sans-serif;
+  font-size:18px;
+  color:var(--cyan);
+  text-transform:uppercase;
+  margin-bottom:14px;
+}
+.panel p{font-size:16px;line-height:1.6;color:#d5ebf8}
+.info-list{display:grid;gap:12px;margin-top:14px}
+.info-item{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:12px 14px;background:rgba(116,247,255,.05);border:1px solid rgba(116,247,255,.12);border-radius:16px;
+}
+.info-item .icon{font-size:22px;line-height:1}
+.info-item strong{display:block;color:var(--amber);margin-bottom:3px}
+.info-item span{color:var(--white);font-size:15px}
+.field{margin-bottom:18px}
+.field label{display:block;margin-bottom:8px;color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase}
+.field input{
+  width:100%;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--line);
+  border-radius:14px;
+  color:#fff;
+  padding:14px 16px;
+  font-size:18px;
+  outline:none;
+}
+.field input:focus{border-color:var(--cyan);box-shadow:0 0 0 4px rgba(116,247,255,.08)}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+.tool{
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px 12px;
+  cursor:pointer;
+  transition:.2s ease;
+  min-height:118px;
+}
+.tool:hover{transform:translateY(-2px);border-color:var(--cyan)}
+.tool.selected{border-color:var(--cyan);background:var(--cyan-soft);box-shadow:var(--shadow)}
+.tool .tool-icon{font-size:24px;margin-bottom:10px}
+.tool .tool-name{font-family:'Orbitron',sans-serif;font-size:12px;color:var(--cyan);margin-bottom:6px;text-transform:uppercase;line-height:1.4}
+.tool .tool-desc{font-size:13px;color:#c9ddeb;line-height:1.4}
+.start-wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.btn{
+  border:none;cursor:pointer;border-radius:16px;padding:14px 22px;font-weight:700;
+  letter-spacing:1px;transition:.2s ease;text-transform:uppercase
+}
+.btn-primary{background:linear-gradient(90deg,var(--cyan),#57d4ff);color:#03202a;box-shadow:0 10px 30px rgba(116,247,255,.2)}
+.btn-primary:hover{transform:translateY(-2px) scale(1.01)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-secondary{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.btn-secondary:hover{border-color:var(--amber);color:var(--amber)}
+.small-note{color:var(--muted);font-size:14px}
+
+/* Game */
+#game{flex-direction:column}
+.hud{
+  position:sticky;top:0;z-index:20;
+  display:grid;grid-template-columns:1.1fr auto auto auto auto;gap:16px;align-items:center;
+  padding:14px 20px;background:rgba(7,17,26,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)
+}
+.hud-block{display:flex;flex-direction:column;gap:3px}
+.hud-label{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.hud-value{font-size:16px;color:#fff}
+.hud-value strong{color:var(--amber)}
+.timer{font-family:'Orbitron',sans-serif;font-size:30px;color:var(--cyan);text-shadow:0 0 16px rgba(116,247,255,.35)}
+.timer.warning{color:var(--amber)}
+.timer.danger{color:var(--rose)}
+.lock-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.lock-dot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:transparent}
+.lock-dot.done{background:var(--green);border-color:var(--green);box-shadow:0 0 10px rgba(114,255,160,.45)}
+.game-wrap{
+  display:grid;grid-template-columns:310px 1fr;min-height:calc(100vh - 78px)
+}
+.sidebar{
+  border-right:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(7,16,24,.94), rgba(11,26,37,.96));
+  padding:20px;
+  overflow:auto;
+}
+.sidebar h2{font-family:'Orbitron',sans-serif;font-size:18px;color:var(--cyan);text-transform:uppercase;margin-bottom:10px}
+.sidebar p{color:var(--muted);font-size:15px;line-height:1.5;margin-bottom:18px}
+.rooms{display:grid;gap:10px}
+.room{
+  width:100%;text-align:left;padding:14px;border-radius:18px;cursor:pointer;
+  background:rgba(255,255,255,.03);border:1px solid var(--line);color:#fff;transition:.2s ease
+}
+.room:hover{border-color:var(--cyan);transform:translateY(-1px)}
+.room.active{border-color:var(--cyan);background:var(--cyan-soft)}
+.room.solved{border-color:var(--green);background:rgba(114,255,160,.10)}
+.room.locked{opacity:.38;pointer-events:none}
+.room-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.room-name{font-family:'Orbitron',sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:.8px}
+.room-status{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--amber);text-transform:uppercase}
+.room-text{font-size:14px;color:#cfe3ef;line-height:1.4}
+.progress-box{margin-top:18px;padding:16px;border-radius:18px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+.bar{height:10px;background:#07131d;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.08);margin:10px 0 6px}
+.bar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--green));transition:width .4s ease}
+.main{
+  padding:26px;
+  overflow:auto;
+}
+.welcome{
+  min-height:100%;display:flex;align-items:center;justify-content:center;text-align:center;
+}
+.welcome-card{max-width:760px;padding:34px;border-radius:28px;background:rgba(10,22,33,.72);border:1px solid var(--line);box-shadow:var(--shadow)}
+.welcome-code{font-family:'Orbitron',sans-serif;font-size:clamp(42px,9vw,90px);line-height:1;color:rgba(116,247,255,.11);margin-bottom:12px}
+.welcome-card h3{font-family:'Orbitron',sans-serif;font-size:24px;text-transform:uppercase;margin-bottom:12px;color:#fff}
+.welcome-card p{font-size:18px;line-height:1.7;color:#cfe4f1}
+.zone{
+  max-width:1040px;margin:0 auto;
+}
+.zone-header{
+  display:flex;gap:16px;align-items:flex-start;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--line)
+}
+.zone-badge{
+  width:72px;height:72px;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:34px;
+  background:linear-gradient(180deg, rgba(116,247,255,.14), rgba(116,247,255,.06));border:1px solid rgba(116,247,255,.18);flex-shrink:0
+}
+.zone-header h1{font-family:'Orbitron',sans-serif;font-size:30px;line-height:1.05;text-transform:uppercase}
+.zone-header h1 span{display:block;color:var(--cyan)}
+.zone-sub{margin-top:8px;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.card{
+  background:linear-gradient(180deg, rgba(18,38,56,.86), rgba(11,23,34,.92));
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:22px;
+  margin-bottom:18px;
+}
+.card h3{font-family:'Orbitron',sans-serif;font-size:17px;color:var(--amber);text-transform:uppercase;margin-bottom:12px}
+.card p,.card li{font-size:17px;line-height:1.65;color:#d7ebf8}
+.card ul{padding-left:20px;display:grid;gap:8px}
+.card strong{color:var(--cyan)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.formula{
+  font-family:'Share Tech Mono',monospace;
+  font-size:20px;
+  background:#08151f;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:14px 16px;
+  color:var(--amber);
+  display:inline-block;
+  margin-top:10px;
+}
+.challenge{border:1px dashed rgba(255,200,87,.35);background:rgba(255,200,87,.05)}
+.challenge h3{color:var(--amber)}
+.answer-area{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.answer-area input{
+  min-width:250px;max-width:360px;width:100%;
+  background:#08141e;border:1px solid var(--line);border-radius:16px;color:#fff;padding:14px 16px;font-size:18px;outline:none
+}
+.answer-area input:focus{border-color:var(--cyan);box-shadow:0 0 0 4px rgba(116,247,255,.08)}
+.answer-area input.good{border-color:var(--green)}
+.answer-area input.bad{border-color:var(--rose)}
+.feedback{margin-top:12px;min-height:28px;font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:.4px}
+.feedback.ok{color:var(--green)}
+.feedback.no{color:var(--rose)}
+.tip{
+  background:rgba(114,255,160,.08);
+  border:1px solid rgba(114,255,160,.2);
+}
+.tip h3{color:var(--green)}
+.solved-banner{
+  margin-top:18px;padding:18px;border-radius:18px;background:rgba(114,255,160,.09);border:1px solid rgba(114,255,160,.3);
+}
+.solved-banner h4{font-family:'Orbitron',sans-serif;color:var(--green);font-size:18px;text-transform:uppercase;margin-bottom:6px}
+.solved-banner p{color:#dcf8e6;font-size:16px}
+.final-room{border:1px solid rgba(255,107,139,.28);background:rgba(255,107,139,.05)}
+.final-room h3{color:var(--rose)}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:40;padding:20px}
+.modal.show{display:flex}
+.modal-box{
+  width:min(680px,94vw);background:linear-gradient(180deg,#0c1925,#09131c);border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:0 30px 60px rgba(0,0,0,.35)
+}
+.modal-box h3{font-family:'Orbitron',sans-serif;color:var(--amber);font-size:22px;text-transform:uppercase;margin-bottom:10px}
+.modal-box p{font-size:18px;line-height:1.65;color:#d4e7f3;margin-bottom:10px}
+.modal-box .close-row{display:flex;justify-content:flex-end;margin-top:12px}
+
+/* Final */
+#final{align-items:center;justify-content:center;position:relative;overflow:hidden}
+#final::before{
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(114,255,160,.18), transparent 32%),
+    radial-gradient(circle at 50% 50%, rgba(116,247,255,.10), transparent 45%);
+}
+.final-card{
+  position:relative;z-index:2;width:min(900px,92vw);padding:38px;border-radius:30px;border:1px solid rgba(114,255,160,.25);
+  background:linear-gradient(180deg, rgba(10,24,18,.88), rgba(8,18,14,.94));box-shadow:0 0 40px rgba(114,255,160,.12);text-align:center
+}
+.final-emoji{font-size:76px;margin-bottom:16px}
+.final-card h1{font-family:'Orbitron',sans-serif;font-size:clamp(28px,5vw,54px);text-transform:uppercase;color:var(--green);margin-bottom:8px}
+.final-card .sub{font-family:'Share Tech Mono',monospace;letter-spacing:3px;color:#a6d8bb;font-size:13px;text-transform:uppercase;margin-bottom:24px}
+.final-msg{
+  text-align:left;padding:24px;border-radius:22px;background:rgba(0,0,0,.22);border:1px solid rgba(114,255,160,.18);margin-bottom:24px
+}
+.final-msg p{font-size:18px;line-height:1.75;color:#e7fff0}
+.stats{display:flex;justify-content:center;gap:28px;flex-wrap:wrap}
+.stat{min-width:160px;padding:18px;border-radius:18px;background:rgba(255,255,255,.03);border:1px solid rgba(114,255,160,.16)}
+.stat strong{display:block;font-family:'Orbitron',sans-serif;font-size:28px;color:var(--cyan);margin-bottom:6px}
+.stat span{font-family:'Share Tech Mono',monospace;font-size:11px;color:#b3d4c0;letter-spacing:2px;text-transform:uppercase}
+
+.toast{
+  position:fixed;right:18px;bottom:18px;z-index:60;max-width:360px;
+  background:linear-gradient(180deg,#10212f,#0b1823);border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:0 20px 40px rgba(0,0,0,.28);
+  opacity:0;transform:translateY(20px);pointer-events:none;transition:.25s ease
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast strong{display:block;color:var(--cyan);font-family:'Orbitron',sans-serif;font-size:14px;text-transform:uppercase;margin-bottom:4px}
+.toast span{font-size:15px;color:#d9edf9;line-height:1.45}
+
+@media (max-width: 980px){
+  .intro-grid{grid-template-columns:1fr}
+  .game-wrap{grid-template-columns:1fr}
+  .sidebar{border-right:none;border-bottom:1px solid var(--line)}
+  .hud{grid-template-columns:1fr 1fr;gap:10px}
+}
+@media (max-width: 680px){
+  .intro-top,.intro-grid{padding-left:18px;padding-right:18px}
+  .tools{grid-template-columns:1fr}
+  .grid-2{grid-template-columns:1fr}
+  .answer-area input{min-width:100%}
+  .zone-header{flex-direction:column}
+  .timer{font-size:24px}
+  .hero-desc,.welcome-card p,.card p,.card li,.modal-box p,.final-msg p{font-size:16px}
+}
+</style>
+</head>
+<body>
+  <section id="intro" class="screen active">
+    <div class="stars"></div>
+    <div class="clouds"></div>
+    <div class="rings"></div>
+
+    <div class="intro-card">
+      <div class="intro-top">
+        <div class="micro">Plataforma estratosférica AERIS-9 · simulación de emergencia científica</div>
+        <div class="hero-title">
+          <span>Misión</span>
+          <span>Cámara de Presión</span>
+        </div>
+        <p class="hero-desc">
+          La estación <strong>AERIS-9</strong> ha sufrido una falla en sus módulos atmosféricos. Para restablecer el sistema, el equipo deberá superar <strong>10 desafíos científicos</strong>: <strong>2 de gases en general</strong>, <strong>2 de Boyle</strong>, <strong>2 de Charles</strong>, <strong>2 de Gay-Lussac</strong> y <strong>2 finales</strong> centrados en la <strong>teoría cinético-molecular</strong> y las <strong>propiedades de los gases</strong>.
+        </p>
+      </div>
+
+      <div class="intro-grid">
+        <div class="panel">
+          <h3>Qué encontrarás</h3>
+          <p>No es solo un candado. Cada sala trae un mini repaso, una fórmula clave y un ejercicio corto para reforzar contenidos antes de responder.</p>
+          <div class="info-list">
+            <div class="info-item">
+              <div class="icon">🌫️</div>
+              <div><strong>Conceptos clave</strong><span>Movimiento de partículas, choques, relaciones entre variables, conversión a Kelvin y resolución de ejercicios.</span></div>
+            </div>
+            <div class="info-item">
+              <div class="icon">📘</div>
+              <div><strong>Aplicación directa</strong><span>Los desafíos están pensados como repaso previo o cierre entretenido de unidad.</span></div>
+            </div>
+            <div class="info-item">
+              <div class="icon">⏱️</div>
+              <div><strong>Tiempo base</strong><span>55 minutos. Dependiendo del módulo elegido puedes obtener una ventaja inicial.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Activación del equipo</h3>
+          <div class="field">
+            <label for="playerName">Nombre del tripulante</label>
+            <input id="playerName" type="text" maxlength="24" placeholder="Escribe tu nombre" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Selecciona un módulo de apoyo</label>
+            <div class="tools" id="tools">
+              <div class="tool" data-tool="sensor" onclick="selectTool(this)">
+                <div class="tool-icon">🛰️</div>
+                <div class="tool-name">Sensor orbital</div>
+                <div class="tool-desc">Empiezas con una pista gratis disponible desde el inicio.</div>
+              </div>
+              <div class="tool" data-tool="reactor" onclick="selectTool(this)">
+                <div class="tool-icon">⚡</div>
+                <div class="tool-name">Reactor auxiliar</div>
+                <div class="tool-desc">Recibes +5 minutos extra. El temporizador inicia en 60:00.</div>
+              </div>
+              <div class="tool" data-tool="archivo" onclick="selectTool(this)">
+                <div class="tool-icon">📂</div>
+                <div class="tool-name">Archivo técnico</div>
+                <div class="tool-desc">Verás una fórmula destacada extra en cada desafío.</div>
+              </div>
+            </div>
+          </div>
+          <div class="start-wrap">
+            <button id="startBtn" class="btn btn-primary" disabled onclick="startMission()">Iniciar misión</button>
+            <button class="btn btn-secondary" type="button" onclick="showHelp()">Ver instrucciones</button>
+          </div>
+          <div class="small-note">Debes escribir tu nombre y elegir un módulo para activar la simulación.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="game" class="screen">
+    <div class="hud">
+      <div class="hud-block">
+        <div class="hud-label">Misión activa</div>
+        <div class="hud-value">AERIS-9 · <strong>Cámara de Presión</strong></div>
+      </div>
+      <div class="hud-block">
+        <div class="hud-label">Tripulante</div>
+        <div class="hud-value" id="hudName">—</div>
+      </div>
+      <div class="hud-block">
+        <div class="hud-label">Tiempo restante</div>
+        <div class="timer" id="timer">55:00</div>
+      </div>
+      <div class="hud-block">
+        <div class="hud-label">Salas resueltas</div>
+        <div class="hud-value"><span id="doneCount">0</span>/10</div>
+      </div>
+      <div class="hud-block" style="justify-self:end; text-align:right;">
+        <div class="hud-label">Sellos</div>
+        <div class="lock-row" id="lockRow"></div>
+      </div>
+    </div>
+
+    <div class="game-wrap">
+      <aside class="sidebar">
+        <h2>Mapa atmosférico</h2>
+        <p>Abre cada módulo y resuélvelo en orden o vuelve a revisar una sala ya desbloqueada. Cuando completes los 10 desafíos, la estación quedará completamente estabilizada.</p>
+        <div class="rooms" id="roomList"></div>
+        <div class="progress-box">
+          <div class="hud-label">Progreso de estabilización</div>
+          <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+          <div class="hud-value"><strong id="progressText">0%</strong> del sistema recuperado</div>
+        </div>
+      </aside>
+
+      <main class="main" id="mainPanel">
+        <div class="welcome">
+          <div class="welcome-card">
+            <div class="welcome-code">AERIS-9</div>
+            <h3>Bienvenido a la estación</h3>
+            <p>Selecciona una sala desde el panel izquierdo para comenzar. Cada módulo contiene un repaso breve y un desafío pensado para ejercitar el contenido de forma clara, progresiva y entretenida.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section id="final" class="screen">
+    <div class="final-card">
+      <div class="final-emoji">🌍</div>
+      <h1>Sistema restablecido</h1>
+      <div class="sub">Misión completada con éxito</div>
+      <div class="final-msg">
+        <p>
+          La presión se estabilizó, los gases volvieron a comportarse como debían y la estación AERIS-9 recuperó el control de su atmósfera. No fue azar: lo lograron porque comprendieron la teoría cinético-molecular, identificaron propiedades clave de los gases, convirtieron temperaturas a Kelvin y aplicaron correctamente las leyes de Boyle, Charles y Gay-Lussac en ejercicios concretos.
+        </p>
+      </div>
+      <div class="stats">
+        <div class="stat"><strong id="finalName">—</strong><span>Tripulante</span></div>
+        <div class="stat"><strong id="finalTime">00:00</strong><span>Tiempo restante</span></div>
+        <div class="stat"><strong>10/10</strong><span>Desafíos resueltos</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal" id="modal">
+    <div class="modal-box">
+      <h3 id="modalTitle">Instrucciones</h3>
+      <p id="modalText"></p>
+      <div class="close-row">
+        <button class="btn btn-primary" onclick="closeModal()">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><strong id="toastTitle"></strong><span id="toastText"></span></div>
+
+<script>
+const rooms = [
+  {
+    id: 'general1',
+    name: 'Gases en general I',
+    icon: '🌫️',
+    short: 'Partículas, choques y presión',
+    title: 'Sala 01 · Núcleo cinético',
+    subtitle: 'Base conceptual del comportamiento de los gases',
+    theory: [
+      'La teoría cinético-molecular explica a los gases como un conjunto de <strong>partículas muy separadas que se mueven en forma constante y aleatoria</strong>.',
+      'La <strong>presión</strong> se produce por los <strong>choques</strong> de las partículas contra las paredes del recipiente.',
+      'Cuando la temperatura aumenta, también aumenta la energía cinética promedio de las partículas.'
+    ],
+    clue: 'Para abrir esta sala, escribe la palabra que explica por qué un gas ejerce presión sobre las paredes del recipiente.',
+    formula: 'Presión ⇢ resultado de los choques de las partículas',
+    answer: ['CHOQUES','COLISIONES'],
+    feedbackOk: 'Correcto. La presión se entiende como resultado de los choques de las partículas contra el recipiente.',
+    feedbackNo: 'Piensa en la acción física que realizan las partículas sobre las paredes del recipiente.',
+    hint: 'No permanecen quietas: impactan una y otra vez.'
+  },
+  {
+    id: 'general2',
+    name: 'Gases en general II',
+    icon: '🌡️',
+    short: 'Temperatura absoluta y Kelvin',
+    title: 'Sala 02 · Conversor térmico',
+    subtitle: 'Antes de aplicar leyes de gases, piensa en Kelvin',
+    theory: [
+      'En las leyes de los gases se trabaja con <strong>temperatura absoluta</strong>, es decir, con la escala <strong>Kelvin</strong>.',
+      'Para pasar de grados Celsius a Kelvin se utiliza: <strong>K = °C + 273</strong>.',
+      'Usar Celsius directamente puede llevar a errores en la proporcionalidad.'
+    ],
+    clue: 'Convierte <strong>27 °C</strong> a Kelvin. Escribe solo el número.',
+    formula: 'K = °C + 273',
+    answer: ['300'],
+    feedbackOk: 'Muy bien. 27 °C equivalen a 300 K.',
+    feedbackNo: 'Suma 273 a la temperatura en grados Celsius.',
+    hint: '27 + 273 = 300.'
+  },
+  {
+    id: 'boyle1',
+    name: 'Ley de Boyle I',
+    icon: '📦',
+    short: 'Presión y volumen, temperatura constante',
+    title: 'Sala 03 · Cámara de compresión',
+    subtitle: 'Primera aplicación de la ley de Boyle',
+    theory: [
+      'La <strong>ley de Boyle</strong> establece que, a temperatura constante, la presión y el volumen son <strong>inversamente proporcionales</strong>.',
+      'Si el volumen disminuye, las partículas tienen menos espacio y la presión aumenta.'
+    ],
+    clue: 'Un gas ocupa <strong>4,0 L</strong> a <strong>1,2 atm</strong>. Se comprime a <strong>2,0 L</strong> sin cambiar la temperatura. ¿Cuál es la nueva presión en atm?',
+    formula: 'P1 · V1 = P2 · V2',
+    answer: ['2.4','2,4'],
+    feedbackOk: 'Excelente. Al reducir el volumen a la mitad, la presión se duplica: 2,4 atm.',
+    feedbackNo: 'Aplica P1·V1 = P2·V2 y despeja P2.',
+    hint: 'Multiplica 1,2 por 4,0 y divide por 2,0.'
+  },
+  {
+    id: 'boyle2',
+    name: 'Ley de Boyle II',
+    icon: '🫧',
+    short: 'Segunda aplicación de presión-volumen',
+    title: 'Sala 04 · Módulo de expansión',
+    subtitle: 'Segundo ejercicio de la ley de Boyle',
+    theory: [
+      'Si el volumen aumenta a temperatura constante, la presión disminuye.',
+      'La constante del sistema se conserva: <strong>P·V</strong> permanece igual.'
+    ],
+    clue: 'Un gas está a <strong>3,0 atm</strong> y ocupa <strong>2,0 L</strong>. Si se expande hasta <strong>6,0 L</strong> a temperatura constante, ¿cuál será su presión final en atm?',
+    formula: 'P2 = (P1 · V1) / V2',
+    answer: ['1','1.0','1,0'],
+    feedbackOk: 'Correcto. La nueva presión es 1,0 atm.',
+    feedbackNo: 'Multiplica la presión inicial por el volumen inicial y divide por el volumen final.',
+    hint: '3,0 × 2,0 = 6,0; luego 6,0 ÷ 6,0 = 1,0.'
+  },
+  {
+    id: 'charles1',
+    name: 'Ley de Charles I',
+    icon: '☀️',
+    short: 'Volumen y temperatura, presión constante',
+    title: 'Sala 05 · Galería térmica',
+    subtitle: 'Primera aplicación de la ley de Charles',
+    theory: [
+      'En la <strong>ley de Charles</strong>, a presión constante, el volumen es <strong>directamente proporcional</strong> a la temperatura absoluta.',
+      'Si aumenta la temperatura en Kelvin, también aumenta el volumen.'
+    ],
+    clue: 'Una muestra de gas ocupa <strong>2,5 L</strong> a <strong>300 K</strong>. Si se calienta hasta <strong>360 K</strong> a presión constante, ¿qué volumen tendrá en litros?',
+    formula: 'V1 / T1 = V2 / T2',
+    answer: ['3','3.0','3,0'],
+    feedbackOk: 'Muy bien. El nuevo volumen es 3,0 L.',
+    feedbackNo: 'Despeja V2 = (V1·T2)/T1.',
+    hint: '2,5 × 360 ÷ 300 = 3,0.'
+  },
+  {
+    id: 'charles2',
+    name: 'Ley de Charles II',
+    icon: '🎈',
+    short: 'Segundo ejercicio de volumen-temperatura',
+    title: 'Sala 06 · Hangar de globos',
+    subtitle: 'Segunda aplicación de la ley de Charles',
+    theory: [
+      'La relación entre volumen y temperatura es directa cuando la presión no cambia.',
+      'Recuerda que siempre debes trabajar la temperatura en Kelvin.'
+    ],
+    clue: 'Un gas ocupa <strong>6,0 L</strong> a <strong>400 K</strong>. Si se enfría hasta <strong>200 K</strong> a presión constante, ¿qué volumen tendrá en litros?',
+    formula: 'V2 = (V1 · T2) / T1',
+    answer: ['3','3.0','3,0'],
+    feedbackOk: 'Correcto. El volumen baja a 3,0 L.',
+    feedbackNo: 'El volumen disminuye en la misma proporción que la temperatura absoluta.',
+    hint: '6,0 × 200 ÷ 400 = 3,0.'
+  },
+  {
+    id: 'gay1',
+    name: 'Ley de Gay-Lussac I',
+    icon: '🔥',
+    short: 'Presión y temperatura, volumen constante',
+    title: 'Sala 07 · Reactor de presión',
+    subtitle: 'Primera aplicación de Gay-Lussac',
+    theory: [
+      'La <strong>ley de Gay-Lussac</strong> indica que, a volumen constante, la presión es <strong>directamente proporcional</strong> a la temperatura absoluta.',
+      'Si las partículas se mueven más rápido, los choques son más intensos y la presión aumenta.'
+    ],
+    clue: 'En un recipiente rígido hay un gas a <strong>1,0 atm</strong> y <strong>300 K</strong>. Si se calienta hasta <strong>450 K</strong>, ¿qué presión final tendrá en atm?',
+    formula: 'P1 / T1 = P2 / T2',
+    answer: ['1.5','1,5'],
+    feedbackOk: 'Exacto. La presión final es 1,5 atm.',
+    feedbackNo: 'Despeja P2 = (P1·T2)/T1.',
+    hint: '1,0 × 450 ÷ 300 = 1,5.'
+  },
+  {
+    id: 'gay2',
+    name: 'Ley de Gay-Lussac II',
+    icon: '🧯',
+    short: 'Segundo ejercicio de presión-temperatura',
+    title: 'Sala 08 · Cámara sellada',
+    subtitle: 'Segunda aplicación de Gay-Lussac',
+    theory: [
+      'En un recipiente cerrado y rígido, el volumen no cambia.',
+      'Por eso, cualquier cambio en temperatura absoluta se refleja en la presión.'
+    ],
+    clue: 'Un gas está a <strong>2,0 atm</strong> y <strong>200 K</strong> dentro de un recipiente rígido. Si se calienta hasta <strong>300 K</strong>, ¿cuál será la nueva presión en atm?',
+    formula: 'P2 = (P1 · T2) / T1',
+    answer: ['3','3.0','3,0'],
+    feedbackOk: 'Muy bien. La presión final es 3,0 atm.',
+    feedbackNo: 'La presión cambia en la misma proporción que la temperatura absoluta.',
+    hint: '2,0 × 300 ÷ 200 = 3,0.'
+  },
+  {
+    id: 'kinetic1',
+    name: 'Teoría cinético-molecular',
+    icon: '⚛️',
+    short: 'Movimiento, energía y choques',
+    title: 'Sala 09 · Núcleo molecular',
+    subtitle: 'Aplicación conceptual de la teoría cinético-molecular',
+    theory: [
+      'La <strong>teoría cinético-molecular</strong> sostiene que las partículas de un gas están en <strong>movimiento constante, aleatorio y rápido</strong>.',
+      'Cuando la temperatura aumenta, aumenta también la <strong>energía cinética promedio</strong> de esas partículas.'
+    ],
+    clue: 'Si un gas se calienta dentro de un recipiente cerrado, ¿qué magnitud microscópica de sus partículas aumenta? Escribe una sola palabra.',
+    formula: '↑ Temperatura ⇢ ↑ energía cinética promedio',
+    answer: ['ENERGIACINETICA','CINETICA','ENERGIACINETICAPROMEDIO'],
+    feedbackOk: 'Correcto. Al aumentar la temperatura, aumenta la energía cinética promedio de las partículas.',
+    feedbackNo: 'Piensa en la energía asociada al movimiento de las partículas.',
+    hint: 'No es una fuerza ni una masa: es la energía del movimiento.'
+  },
+  {
+    id: 'properties1',
+    name: 'Propiedades de los gases',
+    icon: '💨',
+    short: 'Compresibilidad, expansión y difusión',
+    title: 'Sala 10 · Cámara de propiedades',
+    subtitle: 'Reconocimiento de propiedades características de los gases',
+    theory: [
+      'Los gases se caracterizan por su <strong>alta compresibilidad</strong>, su capacidad de <strong>expandirse</strong> y su facilidad para <strong>difundirse</strong>.',
+      'Esto ocurre porque sus partículas están muy separadas y las fuerzas de atracción entre ellas son débiles.'
+    ],
+    clue: '¿Cómo se llama la propiedad que permite disminuir mucho el volumen de un gas cuando aumenta la presión? Escribe una sola palabra.',
+    formula: 'Propiedad destacada ⇢ capacidad de ser comprimido',
+    answer: ['COMPRESIBILIDAD'],
+    feedbackOk: 'Muy bien. Esa propiedad se llama compresibilidad.',
+    feedbackNo: 'Es la propiedad que explica por qué un gas puede reducir bastante su volumen.',
+    hint: 'Comienza con “compre-”.'
+  }
+];
+
+let selectedTool = null;
+let currentRoom = null;
+let solved = new Set();
+let timerSeconds = 55 * 60;
+let timerInterval = null;
+let freeHintUsed = false;
+let missionStarted = false;
+
+const intro = document.getElementById('intro');
+const game = document.getElementById('game');
+const finalScreen = document.getElementById('final');
+const playerNameInput = document.getElementById('playerName');
+const startBtn = document.getElementById('startBtn');
+const hudName = document.getElementById('hudName');
+const finalName = document.getElementById('finalName');
+const timerEl = document.getElementById('timer');
+const finalTime = document.getElementById('finalTime');
+const roomList = document.getElementById('roomList');
+const mainPanel = document.getElementById('mainPanel');
+const lockRow = document.getElementById('lockRow');
+const doneCount = document.getElementById('doneCount');
+const barFill = document.getElementById('barFill');
+const progressText = document.getElementById('progressText');
+
+playerNameInput.addEventListener('input', checkReady);
+
+function selectTool(card){
+  document.querySelectorAll('.tool').forEach(t => t.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedTool = card.dataset.tool;
+  checkReady();
+}
+
+function checkReady(){
+  const nameOk = playerNameInput.value.trim().length > 0;
+  startBtn.disabled = !(nameOk && selectedTool);
+}
+
+function showHelp(){
+  openModal(
+    'Cómo se juega',
+    'Debes entrar a cada sala, leer el repaso breve y responder el desafío. Si tu respuesta es correcta, la sala quedará estabilizada. La misión tiene 10 desafíos exactos: 2 de gases en general, 2 de Boyle, 2 de Charles, 2 de Gay-Lussac y 2 finales sobre teoría cinético-molecular y propiedades de los gases. Si elegiste el Sensor orbital, podrás usar una pista gratuita desde el comienzo. Si elegiste el Archivo técnico, en cada sala se destacará una ayuda extra con la lógica de la fórmula o la idea científica central.'
+  );
+}
+
+function startMission(){
+  const name = playerNameInput.value.trim();
+  hudName.textContent = name;
+  finalName.textContent = name;
+
+  if(selectedTool === 'reactor') timerSeconds = 60 * 60;
+  else timerSeconds = 55 * 60;
+
+  intro.classList.remove('active');
+  game.classList.add('active');
+  missionStarted = true;
+  buildLocks();
+  renderRooms();
+  updateProgress();
+  startTimer();
+  showToast('Misión iniciada', 'La estación AERIS-9 está lista. Comienza por la primera sala.');
+}
+
+function buildLocks(){
+  lockRow.innerHTML = '';
+  for(let i = 0; i < rooms.length; i++){
+    const dot = document.createElement('div');
+    dot.className = 'lock-dot';
+    dot.id = `lock-${i}`;
+    lockRow.appendChild(dot);
+  }
+}
+
+function renderRooms(){
+  roomList.innerHTML = '';
+
+  rooms.forEach((room) => {
+    const btn = document.createElement('button');
+    const isSolved = solved.has(room.id);
+    btn.className = 'room';
+    if(currentRoom === room.id) btn.classList.add('active');
+    if(isSolved) btn.classList.add('solved');
+    btn.innerHTML = `
+      <div class="room-top">
+        <div class="room-name">${room.icon} ${room.name}</div>
+        <div class="room-status">${isSolved ? 'Resuelta' : 'Pendiente'}</div>
+      </div>
+      <div class="room-text">${room.short}</div>
+    `;
+    btn.onclick = () => openRoom(room.id);
+    roomList.appendChild(btn);
+  });
+}
+
+function openRoom(roomId){
+  currentRoom = roomId;
+  renderRooms();
+  const room = rooms.find(r => r.id === roomId);
+  const isSolved = solved.has(roomId);
+  const showArchiveTip = selectedTool === 'archivo';
+
+  let extraTip = '';
+  if(showArchiveTip){
+    extraTip = `
+      <div class="card tip">
+        <h3>Archivo técnico desbloqueado</h3>
+        <p>Recuerda la lógica operativa aquí: <strong>${archiveExplanation(roomId)}</strong></p>
+      </div>
+    `;
+  }
+
+  mainPanel.innerHTML = `
+    <div class="zone">
+      <div class="zone-header">
+        <div class="zone-badge">${room.icon}</div>
+        <div>
+          <h1>${room.title}<span>${room.subtitle}</span></h1>
+          <div class="zone-sub">Repaso + desafío aplicado</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Lo esencial de esta sala</h3>
+          <ul>
+            ${room.theory.map(t => `<li>${t}</li>`).join('')}
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Fórmula o idea clave</h3>
+          <p>Usa esta referencia para resolver el candado científico:</p>
+          <div class="formula">${room.formula}</div>
+        </div>
+      </div>
+
+      ${extraTip}
+
+      <div class="card challenge">
+        <h3>Desafío de desbloqueo</h3>
+        <p>${room.clue}</p>
+        <div class="answer-area">
+          <input id="answerInput" type="text" placeholder="Escribe tu respuesta aquí" ${isSolved ? 'disabled' : ''} />
+          <button class="btn btn-primary" onclick="checkAnswer('${roomId}')" ${isSolved ? 'disabled' : ''}>Verificar</button>
+          <button class="btn btn-secondary" onclick="showHint('${roomId}')">Pista</button>
+        </div>
+        <div id="feedback" class="feedback"></div>
+        ${isSolved ? `
+          <div class="solved-banner">
+            <h4>Sala estabilizada</h4>
+            <p>${room.feedbackOk}</p>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+
+  const input = document.getElementById('answerInput');
+  if(input) input.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') checkAnswer(roomId);
+  });
+}
+
+function archiveExplanation(roomId){
+  const map = {
+    general1: 'La presión se explica por los choques de las partículas contra las paredes del recipiente.',
+    general2: 'Antes de usar leyes de gases, convierte Celsius a Kelvin sumando 273.',
+    boyle1: 'A temperatura constante, si el volumen disminuye, la presión aumenta.',
+    boyle2: 'En Boyle, P·V se conserva; si el volumen aumenta, la presión baja.',
+    charles1: 'A presión constante, el volumen aumenta cuando aumenta la temperatura absoluta.',
+    charles2: 'En Charles, trabaja siempre con Kelvin para mantener la proporcionalidad.',
+    gay1: 'A volumen constante, la presión cambia en la misma proporción que la temperatura absoluta.',
+    gay2: 'En un recipiente rígido, subir temperatura significa subir presión.',
+    kinetic1: 'Si sube la temperatura, sube la energía cinética promedio de las partículas.',
+    properties1: 'La compresibilidad explica que el volumen del gas pueda disminuir mucho al aumentar la presión.'
+  };
+  return map[roomId] || 'Usa Kelvin y revisa la proporcionalidad de las variables.';
+}
+
+function normalize(value){
+  return value
+    .toString()
+    .trim()
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,'');
+}
+
+function checkAnswer(roomId){
+  const room = rooms.find(r => r.id === roomId);
+  const input = document.getElementById('answerInput');
+  const feedback = document.getElementById('feedback');
+  if(!input || !feedback || input.disabled) return;
+
+  const user = normalize(input.value);
+  const valid = room.answer.map(normalize);
+
+  if(valid.includes(user)){
+    input.classList.remove('bad');
+    input.classList.add('good');
+    feedback.className = 'feedback ok';
+    feedback.textContent = room.feedbackOk;
+    input.disabled = true;
+    solved.add(roomId);
+
+    const idx = rooms.findIndex(r => r.id === roomId);
+    if(idx >= 0){
+      const dot = document.getElementById(`lock-${idx}`);
+      if(dot) dot.classList.add('done');
+    }
+
+    updateProgress();
+    renderRooms();
+    showToast('Sala resuelta', `${room.name} ha sido estabilizada.`);
+
+    if(solved.size === rooms.length){
+      clearInterval(timerInterval);
+      finalTime.textContent = formatTime(timerSeconds);
+      showToast('Sistema restablecido', 'Los 10 desafíos fueron resueltos.');
+      setTimeout(() => {
+        game.classList.remove('active');
+        finalScreen.classList.add('active');
+      }, 900);
+      return;
+    }
+
+    setTimeout(() => openRoom(roomId), 200);
+  } else {
+    input.classList.remove('good');
+    input.classList.add('bad');
+    feedback.className = 'feedback no';
+    feedback.textContent = room.feedbackNo;
+  }
+}
+
+function updateProgress(){
+  doneCount.textContent = Math.min(solved.size, rooms.length);
+  const pct = Math.round((Math.min(solved.size, rooms.length)/rooms.length)*100);
+  barFill.style.width = `${pct}%`;
+  progressText.textContent = `${pct}%`;
+}
+
+function showHint(roomId){
+  const room = rooms.find(r => r.id === roomId);
+  if(selectedTool === 'sensor' && !freeHintUsed){
+    freeHintUsed = true;
+    openModal('Pista del Sensor orbital', room.hint);
+    showToast('Pista gratuita usada', 'El Sensor orbital ha entregado una ayuda especial.');
+    return;
+  }
+  openModal('Pista', room.hint);
+}
+
+function startTimer(){
+  updateTimer();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    updateTimer();
+    if(timerSeconds <= 0){
+      clearInterval(timerInterval);
+      openModal('Tiempo agotado', 'La estación ha perdido estabilidad atmosférica. Puedes recargar el HTML para reiniciar la misión o usarlo como una nueva ronda de clase.');
+    }
+  },1000);
+}
+
+function updateTimer(){
+  timerEl.textContent = formatTime(timerSeconds);
+  timerEl.classList.remove('warning','danger');
+  if(timerSeconds <= 600) timerEl.classList.add('danger');
+  else if(timerSeconds <= 1200) timerEl.classList.add('warning');
+}
+
+function formatTime(total){
+  const min = Math.floor(Math.max(total,0)/60).toString().padStart(2,'0');
+  const sec = Math.floor(Math.max(total,0)%60).toString().padStart(2,'0');
+  return `${min}:${sec}`;
+}
+
+function openModal(title,text){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalText').textContent = text;
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('show');
+}
+
+function showToast(title,text){
+  const toast = document.getElementById('toast');
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastText').textContent = text;
+  toast.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+</script>
+</body>
+</html>
